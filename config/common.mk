@@ -80,6 +80,9 @@ PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD := false
 # leave less information available via JDWP.
 PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true
 
+# Bootanimation
+include vendor/wings/config/bootanimation.mk
+
 # Build Manifest
 PRODUCT_PACKAGES += \
     build-manifest
