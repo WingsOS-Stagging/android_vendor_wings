@@ -1,38 +1,33 @@
-PRODUCT_VERSION_MAJOR = 21
-PRODUCT_VERSION_MINOR = 0
+# Versioning System
+WINGS_CODENAME := Sky
+WINGS_NUM_VER := 1.0
 
-ifeq ($(LINEAGE_VERSION_APPEND_TIME_OF_DAY),true)
-    LINEAGE_BUILD_DATE := $(shell date -u +%Y%m%d_%H%M%S)
-else
-    LINEAGE_BUILD_DATE := $(shell date -u +%Y%m%d)
+TARGET_PRODUCT_SHORT := $(subst wings_,,$(WINGS_BUILD_TYPE))
+
+WINGS_BUILD_TYPE ?= unofficial
+
+# Sign builds if building an official build
+ifeq ($(filter-out official,$(WINGS_BUILD_TYPE)),)
+    PRODUCT_DEFAULT_DEV_CERTIFICATE := $(KEYS_LOCATION)
 endif
 
-# Set LINEAGE_BUILDTYPE from the env RELEASE_TYPE, for jenkins compat
+# Set all versions
+BUILD_DATE := $(shell date -u +%Y%m%d)
+BUILD_TIME := $(shell date -u +%H%M)
+WINGS_BUILD_VERSION := $(WINGS_NUM_VER)-$(WINGS_CODENAME)
+WINGS_VERSION := $(WINGS_BUILD_VERSION)-$(WINGS_BUILD)-$(WINGS_BUILD_TYPE)-$(BUILD_TIME)-$(BUILD_DATE)
+ROM_FINGERPRINT := WINGS/$(PLATFORM_VERSION)/$(TARGET_PRODUCT_SHORT)/$(BUILD_TIME)
+WINGS_DISPLAY_VERSION := $(WINGS_VERSION)
+RELEASE_TYPE := $(WINGS_BUILD_TYPE)
 
-ifndef LINEAGE_BUILDTYPE
-    ifdef RELEASE_TYPE
-        # Starting with "LINEAGE_" is optional
-        RELEASE_TYPE := $(shell echo $(RELEASE_TYPE) | sed -e 's|^LINEAGE_||g')
-        LINEAGE_BUILDTYPE := $(RELEASE_TYPE)
-    endif
-endif
-
-# Filter out random types, so it'll reset to UNOFFICIAL
-ifeq ($(filter RELEASE NIGHTLY SNAPSHOT EXPERIMENTAL,$(LINEAGE_BUILDTYPE)),)
-    LINEAGE_BUILDTYPE := UNOFFICIAL
-    LINEAGE_EXTRAVERSION :=
-endif
-
-ifeq ($(LINEAGE_BUILDTYPE), UNOFFICIAL)
-    ifneq ($(TARGET_UNOFFICIAL_BUILD_ID),)
-        LINEAGE_EXTRAVERSION := -$(TARGET_UNOFFICIAL_BUILD_ID)
-    endif
-endif
-
-LINEAGE_VERSION_SUFFIX := $(LINEAGE_BUILD_DATE)-$(LINEAGE_BUILDTYPE)$(LINEAGE_EXTRAVERSION)-$(LINEAGE_BUILD)
-
-# Internal version
-LINEAGE_VERSION := $(PRODUCT_VERSION_MAJOR).$(PRODUCT_VERSION_MINOR)-$(LINEAGE_VERSION_SUFFIX)
-
-# Display version
-LINEAGE_DISPLAY_VERSION := $(PRODUCT_VERSION_MAJOR)-$(LINEAGE_VERSION_SUFFIX)
+# WingsOS system version
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+    ro.wings.base.codename=$(WINGS_CODENAME) \
+    ro.wings.base.version=$(WINGS_NUM_VER) \
+    ro.wings.build.version=$(WINGS_BUILD_VERSION) \
+    ro.wings.build.date=$(BUILD_DATE) \
+    ro.wings.buildtype=$(WINGS_BUILD_TYPE) \
+    ro.wings.display.version=$(WINGS_DISPLAY_VERSION) \
+    ro.wings.fingerprint=$(ROM_FINGERPRINT) \
+    ro.wings.version=$(WINGS_VERSION) \
+    ro.modversion=$(WINGS_VERSION)
